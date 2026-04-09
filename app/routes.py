@@ -1,10 +1,11 @@
 from flask import Blueprint, request, jsonify
 from app.db import SessionLocal
 from app.models import Task
+from app.tasks import process_task
 
 routes = Blueprint("routes", __name__)
 
-# 🔹 Create Task
+# Create Task
 @routes.route("/tasks", methods=["POST"])
 def create_task():
     db = SessionLocal()
@@ -18,11 +19,16 @@ def create_task():
 
     db.add(task)
     db.commit()
+    db.refresh(task)
+
+    queue_name = task.priority.lower()
+
+    process_task.apply_async(args=[task.id], queue=queue_name)
 
     return jsonify({"id": task.id, "status": task.status})
 
 
-# 🔹 Get Task
+# Get Task
 @routes.route("/tasks/<task_id>", methods=["GET"])
 def get_task(task_id):
     db = SessionLocal()
@@ -39,7 +45,7 @@ def get_task(task_id):
     })
 
 
-# 🔹 List Tasks
+# List Tasks
 @routes.route("/tasks", methods=["GET"])
 def list_tasks():
     db = SessionLocal()

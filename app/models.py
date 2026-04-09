@@ -14,4 +14,4 @@ class Task(Base):
     status = Column(Enum("PENDING", "PROCESSING", "SUCCESS", "FAILED", name="status_enum"), default="PENDING")
     retry_count = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
